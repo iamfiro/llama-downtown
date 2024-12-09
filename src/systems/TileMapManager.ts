@@ -1,7 +1,7 @@
 import {Camera} from "./Camera.ts";
 
 type TileType = {
-    id: number;
+    id: string;
     walkable: boolean;
     sprite: {
         x: number;
@@ -25,7 +25,7 @@ type Layer = {
 export class TileMapManager {
     private width: number;
     private height: number;
-    private tileTypes: Map<number, TileType>;
+    private tileTypes: Map<string, TileType>;
     private layers: Layer[];
     private tileSize: number;
     private tilesetImage: HTMLImageElement | null;
@@ -67,7 +67,7 @@ export class TileMapManager {
         this.tileTypes.set(tileType.id, tileType);
     }
 
-    placeTile(x: number, y: number, layerIndex: number, tileTypeId: number): boolean {
+    placeTile(x: number, y: number, layerIndex: number, tileTypeId: string): boolean {
         if (!this.isValidPosition(x, y) || !this.isValidLayer(layerIndex)) {
             return false;
         }
@@ -82,6 +82,8 @@ export class TileMapManager {
             x: x,
             y: y
         };
+
+        console.log(this.layers);
 
         return true;
     }

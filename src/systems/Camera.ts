@@ -3,7 +3,7 @@ export class Camera {
     private x: number = 0;
     private y: number = 0;
     private zoom: number = 1;
-    private minZoom: number = 0.5;
+    private minZoom: number = 0.1;
     private maxZoom: number = 2;
     private isDragging: boolean = false;
     private lastX: number = 0;
@@ -22,15 +22,32 @@ export class Camera {
         // 초기 위치를 중앙으로 설정
         this.x = (worldWidth * 32 - viewportWidth) / 2;
         this.y = (worldHeight * 32 - viewportHeight) / 2;
+
+        this.clampPosition();
     }
 
     // 카메라 위치 제한
     private clampPosition(): void {
-        const maxX = (this.worldWidth * 32 * this.zoom) - this.viewportWidth;
-        const maxY = (this.worldHeight * 32 * this.zoom) - this.viewportHeight;
+        // 현재 줌 레벨에서의 월드 크기
+        const worldScreenWidth = this.worldWidth * 32 * this.zoom;
+        const worldScreenHeight = this.worldHeight * 32 * this.zoom;
 
-        this.x = Math.max(0, Math.min(this.x, maxX));
-        this.y = Math.max(0, Math.min(this.y, maxY));
+        // 뷰포트가 월드보다 큰 경우 중앙 정렬
+        if (worldScreenWidth < this.viewportWidth) {
+            this.x = (worldScreenWidth - this.viewportWidth) / 2;
+        } else {
+            // 기존처럼 x 위치 제한
+            const maxX = worldScreenWidth - this.viewportWidth;
+            this.x = Math.max(0, Math.min(this.x, maxX));
+        }
+
+        if (worldScreenHeight < this.viewportHeight) {
+            this.y = (worldScreenHeight - this.viewportHeight) / 2;
+        } else {
+            // 기존처럼 y 위치 제한
+            const maxY = worldScreenHeight - this.viewportHeight;
+            this.y = Math.max(0, Math.min(this.y, maxY));
+        }
     }
 
     // 줌 레벨 설정
