@@ -23,6 +23,10 @@ export class GameTime {
         this.lastUpdate = now;
     }
 
+    getTime(): string {
+        return this.currentDate.toLocaleTimeString();
+    }
+
     // 게임 시간 조작 메서드들
     pause(): void {
         this.isPaused = true;
@@ -36,11 +40,6 @@ export class GameTime {
     setGameSpeed(speed: number): void {
         if (speed < 0) throw new Error("Game speed cannot be negative");
         this.gameSpeed = speed;
-    }
-
-    // 시간 정보 가져오기
-    getTime(): string {
-        return this.currentDate.toLocaleTimeString();
     }
 
     getDate(): string {

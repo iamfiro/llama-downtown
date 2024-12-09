@@ -1,0 +1,15 @@
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    background-color: #40c640;
+    color: white;
+
+    h2 {
+        margin: 0;
+
+        font-weight: 500;
+        font-size: 22px;
+    }
+}
