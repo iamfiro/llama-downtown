@@ -2,5 +2,13 @@
     width: 100%;
     height: 100vh;
 
-    background-color: red;
+    image-rendering: pixelated; // 픽셀 아트 선명도 유지
+    background: #ff0000;
+
+    // 드래그 방지
+    user-select: none;
+    -webkit-user-select: none;
+
+    // 터치 디바이스에서의 동작 개선
+    touch-action: none;
 }

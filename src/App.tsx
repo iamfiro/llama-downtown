@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { GameTime } from "./engine/time";
+import { GameTime } from "./systems/time";
 import './global.scss';
 import style from './app.module.scss';
 import Game from "./components/Game.tsx";
