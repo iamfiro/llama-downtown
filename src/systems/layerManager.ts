@@ -4,6 +4,7 @@ export function setupGameLayers(tileMapManager: TileMapManager) {
     // 먼저 기본 타일 타입들을 등록
     registerGrassGroundTile(tileMapManager);
     registerRoadTile(tileMapManager);
+    registerRoadBloackingTile(tileMapManager);
 
     // 레이어 데이터를 생성하고 적용
     const layerData = generateLayerData();
@@ -156,6 +157,42 @@ function registerRoadTile(tileMapManager: TileMapManager) {
     }
 }
 
+function registerRoadBloackingTile(tileMapManager: TileMapManager) {
+    // 도로를 막는 고깔 타일
+    tileMapManager.registerTileType({
+        id: 'cowl',
+        walkable: false,
+        sprite: {
+            x: 16 * 10,
+            y: 16 * 11,
+            width: 16,
+            height: 16,
+        }
+    });
+
+    tileMapManager.registerTileType({
+        id: 'cowl_red',
+        walkable: false,
+        sprite: {
+            x: 16 * 8,
+            y: 16 * 10,
+            width: 16,
+            height: 16,
+        }
+    });
+
+    tileMapManager.registerTileType({
+        id: 'road_block',
+        walkable: false,
+        sprite: {
+            x: 16 * 6,
+            y: 16 * 9,
+            width: 16,
+            height: 16,
+        }
+    });
+}
+
 function generateLayerData(): string[][][] {
     return [
         [
@@ -179,8 +216,30 @@ function generateLayerData(): string[][][] {
             ['stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_7', 'vertical_road_0', 'vertical_road_1', 'vertical_road_2', 'stone_1', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_7', 'vertical_road_0', 'vertical_road_2', 'horizontal_road_2', 'parking_road', 'stone_1', 'stone_4'],
             ['stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_7', 'vertical_road_0', 'vertical_road_1', 'vertical_road_2', 'stone_1', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_7', 'vertical_road_0', 'vertical_road_2', 'horizontal_road_2', 'parking_road', 'stone_1', 'stone_4'],
             ['stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_7', 'vertical_road_0', 'vertical_road_1', 'vertical_road_2', 'stone_1', 'stone_4', 'stone_4', 'stone_4', 'stone_4', 'stone_7', 'vertical_road_0', 'vertical_road_2', 'horizontal_road_2', 'parking_road', 'stone_1', 'stone_4'],
-        ]
-        // 추가 레이어 패턴들을 여기에 추가할 수 있습니다
+        ],
+        // 도로 막는 고깔
+        [
+            ['', '', '', '', '', '', '', 'cowl', 'road_block', 'cowl', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'cowl', 'road_block', 'cowl', 'road_block', 'cowl', 'road_block'],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            ['cowl', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'cowl'],
+            ['cowl_red', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'cowl_red'],
+            ['cowl', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'cowl'],
+            [],
+            [],
+            [],
+            [],
+            [],
+            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'cowl', 'road_block', 'cowl', '', '', '', '', '', '', 'cowl_red', 'cowl_red'],
+        ],
     ];
 }
 
