@@ -1,10 +1,10 @@
-// App.tsx
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { GameTime } from "./engine/time";
+import './global.scss';
+import style from './app.module.scss';
+import Game from "./components/Game.tsx";
 
 function App() {
-	const [currentTime, setCurrentTime] = useState<string>("");
-	const [currentDate, setCurrentDate] = useState<string>("");
 	const gameTimeRef = useRef<GameTime>(new GameTime(new Date(2024, 0, 1), 90));
 
 	useEffect(() => {
@@ -14,9 +14,6 @@ function App() {
 		const updateTime = () => {
 			const gameTime = gameTimeRef.current;
 			gameTime.update();
-
-			setCurrentTime(gameTime.getTime());
-			setCurrentDate(gameTime.getDate());
 
 			animationFrameId = requestAnimationFrame(updateTime);
 		};
@@ -33,12 +30,8 @@ function App() {
 	}, []);
 
 	return (
-		<div className="p-4">
-			<div className="mb-4">
-				<h2 className="text-xl font-bold mb-2">게임 시간 시스템</h2>
-				<div className="text-lg">현재 시간: {currentTime}</div>
-				<div className="text-lg">현재 날짜: {currentDate}</div>
-			</div>
+		<div className={style.container}>
+			<Game />
 		</div>
 	);
 }
