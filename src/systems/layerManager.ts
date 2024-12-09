@@ -5,6 +5,7 @@ export function setupGameLayers(tileMapManager: TileMapManager) {
     registerGrassGroundTile(tileMapManager);
     registerRoadTile(tileMapManager);
     registerRoadBloackingTile(tileMapManager);
+    registerSideWalkTile(tileMapManager);
 
     // 레이어 데이터를 생성하고 적용
     const layerData = generateLayerData();
@@ -193,6 +194,70 @@ function registerRoadBloackingTile(tileMapManager: TileMapManager) {
     });
 }
 
+function registerSideWalkTile(tileMapManager: TileMapManager) {
+    // 우제통
+    tileMapManager.registerTileType({
+        id: 'mailbox',
+        walkable: false,
+        sprite: {
+            x: 16 * 8,
+            y: 16 * 11,
+            width: 16,
+            height: 16,
+        }
+    });
+
+    // 가로등
+    for (let i = 0; i < 2; i++) {
+        tileMapManager.registerTileType({
+            id: `lamp_${i}`,
+            walkable: false,
+            sprite: {
+                x: 16 * 3,
+                y: 16 * (6 + i),
+                width: 16,
+                height: 16,
+            }
+        });
+    }
+
+    // 초록색 가로등
+    for (let i = 0; i < 2; i++) {
+        tileMapManager.registerTileType({
+            id: `green_lamp_${i}`,
+            walkable: false,
+            sprite: {
+                x: 16 * 7,
+                y: 16 * (6 + i),
+                width: 16,
+                height: 16,
+            }
+        });
+    }
+
+    // 신호등
+    tileMapManager.registerTileType({
+        id: `signal_bottom`,
+        walkable: false,
+        sprite: {
+            x: 16 * 2,
+            y: 16 * 7,
+            width: 16,
+            height: 16,
+        }
+    });
+    tileMapManager.registerTileType({
+        id: `signal`,
+        walkable: false,
+        sprite: {
+            x: 16 * 4,
+            y: 16 * 15,
+            width: 16,
+            height: 16,
+        }
+    });
+}
+
 function generateLayerData(): string[][][] {
     return [
         [
@@ -239,7 +304,25 @@ function generateLayerData(): string[][][] {
             [],
             [],
             ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'cowl', 'road_block', 'cowl', '', '', '', '', '', '', 'cowl_red', 'cowl_red'],
+            // 인도 잡다한 거
         ],
+        // 인도 물건
+        [
+            [],
+            ['', '', '', '', '', '', 'signal', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', 'signal_bottom', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            [], [],  [],
+            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'green_lamp_0'],
+            ['', '', '', '', '', '', '', '', '', '', 'signal', '', '', '', '', '', '', '', '', '', '', '', 'green_lamp_1', '', '', '', '', 'signal'],
+            ['', '', '', '', '', '', '', '', '', '', 'signal_bottom', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'signal_bottom'],
+            ['lamp_0', '', '', '', '', '', 'lamp_0', '', '', '', 'green_lamp_0', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'green_lamp_0'],
+            ['lamp_1', '', '', '', '', '', 'lamp_1', '', '', '', 'green_lamp_1', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'green_lamp_1'],
+            [], [],
+            ['lamp_0', '', '', '', '', '', '', '', '', '', '', '', 'signal', '', '', '', '', '', 'signal', '', '', '', '', '', '', '', '', 'green_lamp_0'],
+            ['lamp_1', '', '', '', '', '', '', '', '', '', '', '', 'signal_bottom', '', '', '', '', '', 'signal_bottom', '', '', '', '', '', '', '', '', 'green_lamp_1'],
+            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'signal', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'signal_bottom', '', '', '', '', ''],
+        ]
     ];
 }
 
