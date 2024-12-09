@@ -3,6 +3,7 @@ import { GameTime } from "./systems/time";
 import './global.scss';
 import style from './app.module.scss';
 import Game from "./components/Game.tsx";
+import Time from "./components/Time.tsx";
 
 function App() {
 	const gameTimeRef = useRef<GameTime>(new GameTime(new Date(2024, 0, 1), 90));
@@ -32,6 +33,9 @@ function App() {
 	return (
 		<div className={style.container}>
 			<Game />
+			<section className={style.section}>
+				<Time gameTimeRef={gameTimeRef} />
+			</section>
 		</div>
 	);
 }
