@@ -5,6 +5,7 @@ import {GameTime} from "../systems/time";
 import {WORLD_HEIGHT, WORLD_WIDTH} from "../constants/game.ts";
 import {setupGameLayers} from "../systems/layerManager.ts";
 import {AreaManager} from "../systems/AreaManager.ts";
+import {AgentManager} from "../systems/AgentManager.ts";
 
 const DeterministicGame = () => {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -13,6 +14,7 @@ const DeterministicGame = () => {
 	const tileMapManagerRef = useRef<TileMapManager | null>(null);
 	const areaManagerRef = useRef<AreaManager | null>(null);
 	const gameTimeRef = useRef<GameTime | null>(null);
+	const agentManagerRef = useRef<AgentManager | null>(null);
 	const cameraRef = useRef<Camera | null>(null);
 
 	useEffect(() => {
@@ -149,6 +151,11 @@ const DeterministicGame = () => {
 					{x: 9, y: 3},
 				]);
 
+				if (areaManagerRef.current) {
+                    agentManagerRef.current = new AgentManager(areaManagerRef.current);
+					await agentManagerRef.current.initialize();
+                }
+
 				setGameInitialized(true);
 				startGameLoop();
 			} catch (error) {
@@ -178,6 +185,9 @@ const DeterministicGame = () => {
 					tileMapManagerRef.current.render(ctx, cameraRef.current);
 
 					areaManagerRef.current?.render(ctx, cameraRef.current);
+					agentManagerRef.current?.render(ctx, cameraRef.current);
+
+					// agentManagerRef.current?.update(deltaTime)
 				}
 
 				requestAnimationFrame(gameLoop);
