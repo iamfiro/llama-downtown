@@ -7,10 +7,105 @@ export function setupGameLayers(tileMapManager: TileMapManager) {
 	registerRoadBloackingTile(tileMapManager);
 	registerSideWalkTile(tileMapManager);
 	registerRoomTile(tileMapManager);
+	registerGrassTile(tileMapManager);
 
 	// 레이어 데이터를 생성하고 적용
 	const layerData = generateLayerData();
 	applyLayerData(tileMapManager, layerData);
+}
+
+function registerGrassTile(tileMapManager: TileMapManager) {
+	let mediumTileIndex = 0;
+	for (let i = 0; i < 3; i++) {
+		for (let j = 0; j < 3; j++) {
+			tileMapManager.registerTileType({
+				id: `grass_medium_${mediumTileIndex}`,
+				walkable: true,
+				sprite: {
+					x: i * 16,
+					y: j * 16,
+					width: 16,
+					height: 16
+				}
+			});
+			mediumTileIndex++;
+		}
+	}
+
+	let smallTileIndex = 0;
+	for (let i = 0; i < 2; i++) {
+		for (let j = 0; j < 2; j++) {
+			tileMapManager.registerTileType({
+				id: `grass_small_${smallTileIndex}`,
+				walkable: true,
+				sprite: {
+					x: i * 16 + (16 * 3),
+					y: j * 16,
+					width: 16,
+					height: 16
+				}
+			});
+			smallTileIndex++;
+		}
+	}
+
+	let squareTileIndex = 0;
+	for (let i = 0; i < 2; i++) {
+		for (let j = 0; j < 2; j++) {
+			tileMapManager.registerTileType({
+				id: `grass_square_${squareTileIndex}`,
+				walkable: true,
+				sprite: {
+					x: i * 16 + (16 * 5),
+					y: j * 16,
+					width: 16,
+					height: 16
+				}
+			});
+			squareTileIndex++;
+		}
+	}
+
+	let horizontalTileIndex = 0;
+	for (let i = 0; i < 3; i++) {
+		tileMapManager.registerTileType({
+			id: `grass_horizontal_${horizontalTileIndex}`,
+			walkable: true,
+			sprite: {
+				x: i * 16 + (16 * 3),
+				y: 16 * 2,
+				width: 16,
+				height: 16
+			}
+		});
+		horizontalTileIndex++;
+	}
+
+	tileMapManager.registerTileType({
+		id: 'grass_round',
+		walkable: true,
+		sprite: {
+			x: 16 * 6,
+			y: 16 * 2,
+			width: 16,
+			height: 16
+		}
+	})
+
+	let verticalTileIndex = 0;
+	for (let i = 0; i < 3; i++) {
+		tileMapManager.registerTileType({
+			id: `grass_vertical_${verticalTileIndex}`,
+			walkable: true,
+			sprite: {
+				x: 16 * 7,
+				y: i * 16,
+				width: 16,
+				height: 16
+			}
+		});
+		verticalTileIndex++;
+	}
 }
 
 function registerStoneGroundTile(tileMapManager: TileMapManager) {
