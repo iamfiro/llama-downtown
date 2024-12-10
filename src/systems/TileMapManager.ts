@@ -83,8 +83,6 @@ export class TileMapManager {
             y: y
         };
 
-        console.log(this.layers);
-
         return true;
     }
 
