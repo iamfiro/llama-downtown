@@ -7,8 +7,7 @@ from beanie import init_beanie
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-
-from router import movement
+from router import chat
 from utils.log import Logger
 
 logger = Logger.create(__name__, level=logging.DEBUG)
@@ -45,7 +44,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(create_story.router)
+app.include_router(chat.router)
 
 @app.get("/")
 async def root():
