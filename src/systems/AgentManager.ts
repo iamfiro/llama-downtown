@@ -1,352 +1,132 @@
-import {Position, Resident, ResidentState} from "./Resident";
 import {AreaManager} from "./AreaManager";
 import {Camera} from "./Camera";
+import {Resident} from "./Resident.ts";
 
-// Custom error types for better error handling
-class ResidentInitializationError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = 'ResidentInitializationError';
-	}
-}
-
-class ResidentUpdateError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = 'ResidentUpdateError';
-	}
-}
-
-class APIError extends Error {
-	constructor(message: string, public statusCode?: number) {
-		super(message);
-		this.name = 'APIError';
-	}
+interface BehaviorBubble {
+	text: string;
 }
 
 export class AgentManager {
 	private residents: Map<string, Resident> = new Map();
-	private readonly API_ENDPOINT: string;
-	private readonly MAX_RETRY_ATTEMPTS = 3;
-	private readonly RETRY_DELAY = 1000; // 1초
-	private areaManager: AreaManager;
-	private initialized: boolean = false;
-	private debugMode: boolean = true;
-
-	// 렌더링 관련 상수
-	private readonly RESIDENT_COLORS = {
-		DEFAULT: '#4CAF50',
-		AT_HOME: '#8BC34A',
-		MOVING: '#FFA726',
-		WORKING: '#42A5F5'
-	};
+	private behaviorBubbles: Map<string, BehaviorBubble> = new Map();
 	private readonly RESIDENT_SIZE = 32;
-	private readonly NAME_FONT = '12px Arial';
-	private readonly STATE_FONT = '10px Arial';
 
-	constructor(areaManager: AreaManager, apiEndpoint?: string) {
-		if (!areaManager) {
-			throw new Error('AreaManager is required');
-		}
-		this.areaManager = areaManager;
-		this.API_ENDPOINT = apiEndpoint || 'https://6588f40c-df84-4e96-9181-6e66691acd71.mock.pstmn.io';
+	constructor(private areaManager: AreaManager) {
 	}
 
 	async initialize(): Promise<void> {
-		if (this.initialized) {
-			return;
-		}
+		const residentsToInitialize = [
+			{id: 'william', name: 'William', houseId: 'house_william', spriteId: Math.floor(Math.random() * 5)},
+		];
 
-		try {
-			await this.initializeResidents();
-			this.initialized = true;
-		} catch (error) {
-			console.error('Initialization failed:', error);
-			throw new ResidentInitializationError(
-				`Initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-			);
-		}
-	}
-
-	private async initializeResidents(): Promise<void> {
-		try {
-			const residentsToInitialize = [
-				{id: 'william', name: 'William', houseId: 'house_william'}
-			];
-
-			for (const residentInfo of residentsToInitialize) {
-				await this.initializeSingleResident(residentInfo);
+		for (const info of residentsToInitialize) {
+			const homeCenter = this.areaManager.getAreaCenter(info.houseId);
+			if (homeCenter) {
+				const resident = new Resident(info.id, info.name, homeCenter, this.areaManager, 0);
+				this.residents.set(info.id, resident);
+				// 초기 상태 설정
+				this.updateBehaviorBubble(resident.id, this.formatAction(resident.getState().currentAction));
 			}
-		} catch (error) {
-			console.error('Failed to initialize residents:', error);
-			throw new ResidentInitializationError(
-				`Failed to initialize residents: ${error instanceof Error ? error.message : 'Unknown error'}`
-			);
 		}
 	}
 
-	private async initializeSingleResident(
-		residentInfo: { id: string; name: string; houseId: string }
-	): Promise<void> {
-		try {
-			if (!this.areaManager.hasArea(residentInfo.houseId)) {
-				throw new Error(`House area not found for resident: ${residentInfo.name}`);
-			}
+	update(deltaTime: number): void {
+		for (const resident of this.residents.values()) {
+			const previousState = resident.getState().currentAction;
+			resident.update(deltaTime);
+			const currentState = resident.getState().currentAction;
 
-			const homeCenter = this.areaManager.getAreaCenter(residentInfo.houseId);
-			if (!homeCenter) {
-				throw new Error(`Unable to get home center for resident: ${residentInfo.name}`);
+			// 상태가 변경되었을 때만 버블 업데이트
+			if (previousState !== currentState) {
+				this.updateBehaviorBubble(resident.id, this.formatAction(currentState));
 			}
-
-			if (!this.isValidPosition(homeCenter)) {
-				throw new Error(`Invalid home center position for resident: ${residentInfo.name}`);
-			}
-
-			await this.addResident(residentInfo.id, residentInfo.name, homeCenter);
-			console.log(`Successfully initialized resident: ${residentInfo.name}`);
-		} catch (error) {
-			console.error(`Failed to initialize resident ${residentInfo.name}:`, error);
-			throw error;
 		}
 	}
 
-	private isValidPosition(position: Position): boolean {
-		return (
-			position &&
-			typeof position.x === 'number' &&
-			typeof position.y === 'number' &&
-			!isNaN(position.x) &&
-			!isNaN(position.y) &&
-			position.x >= 0 &&
-			position.y >= 0
-		);
-	}
-
-	private async addResident(id: string, name: string, position: Position): Promise<void> {
-		try {
-			if (this.residents.has(id)) {
-				throw new Error(`Resident with ID ${id} already exists`);
-			}
-
-			const resident = new Resident(id, name, position, this.areaManager);
-
-			this.residents.set(id, resident);
-		} catch (error) {
-			throw new ResidentInitializationError(
-				`Failed to add resident ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`
-			);
+	private formatAction(action: string): string {
+		switch (action) {
+			case 'move':
+				return "🚶 Walking...";
+			case 'idle':
+				return "🧍 Standing";
+			default:
+				return `${action}`;
 		}
 	}
 
-	async update(deltaTime: number): Promise<void> {
-		if (typeof deltaTime !== 'number' || deltaTime < 0) {
-			throw new ResidentUpdateError('Invalid deltaTime value');
-		}
-
-		const updatePromises = Array.from(this.residents.values()).map(async (resident) => {
-			try {
-				resident.update(deltaTime);
-				await this.checkAndUpdateAICommand(resident);
-			} catch (error) {
-				console.error(`Failed to update resident ${resident.name}:`, error);
-				throw new ResidentUpdateError(
-					`Failed to update resident ${resident.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
-				);
-			}
-		});
-
-		await Promise.all(updatePromises);
-	}
-
-	private async checkAndUpdateAICommand(resident: Resident): Promise<void> {
-		if (!resident) {
-			throw new Error('Invalid resident object');
-		}
-
-		const state = resident.getState();
-		if (state.currentAction === 'idle') {
-			let lastError: Error | null = null;
-
-			for (let attempt = 0; attempt < this.MAX_RETRY_ATTEMPTS; attempt++) {
-				try {
-					const command = await this.fetchNextCommand(resident.id, state);
-					await resident.executeCommand(command);
-					return;
-				} catch (error) {
-					lastError = error instanceof Error ? error : new Error('Unknown error');
-					console.error(`Attempt ${attempt + 1} failed:`, error);
-
-					if (attempt < this.MAX_RETRY_ATTEMPTS - 1) {
-						await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
-					}
-				}
-			}
-
-			throw new Error(
-				`Failed to update AI command after ${this.MAX_RETRY_ATTEMPTS} attempts: ${lastError?.message}`
-			);
-		}
-	}
-
-	private async fetchNextCommand(residentId: string, state: ResidentState): Promise<string> {
-		if (!residentId || !state) {
-			throw new APIError('Invalid parameters for fetchNextCommand');
-		}
-
-		try {
-			const response = await fetch(`${this.API_ENDPOINT}/`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					residentId,
-					currentState: state,
-					timestamp: Date.now(),
-					isHome: state.isHome
-				})
-			});
-
-			if (!response.ok) {
-				throw new APIError(`API request failed with status ${response.status}`, response.status);
-			}
-
-			const data = await response.json();
-
-			if (!data || !data.command) {
-				throw new APIError('Invalid response format from API');
-			}
-
-			return data.command;
-		} catch (error) {
-			if (error instanceof APIError) {
-				throw error;
-			}
-			throw new APIError(
-				`Failed to fetch next command: ${error instanceof Error ? error.message : 'Unknown error'}`
-			);
-		}
+	private updateBehaviorBubble(residentId: string, text: string) {
+		this.behaviorBubbles.set(residentId, {text});
 	}
 
 	render(ctx: CanvasRenderingContext2D, camera: Camera): void {
-		if (!ctx || !camera) {
-			console.error('Invalid rendering context or camera');
-			return;
-		}
+		if (!ctx || !camera) return;
 
-		try {
-			camera.applyTransform(ctx);
+		camera.applyTransform(ctx);
 
-			for (const resident of this.residents.values()) {
-				this.renderResident(ctx, resident);
-				if (this.debugMode) {
-					this.renderDebugInfo(ctx, resident);
-				}
+		for (const resident of this.residents.values()) {
+			// 주민 렌더링
+			resident.render(ctx, this.RESIDENT_SIZE);
+
+			// 행동 버블 렌더링
+			const bubble = this.behaviorBubbles.get(resident.id);
+			if (bubble) {
+				this.renderBehaviorBubble(ctx, resident, bubble);
 			}
-
-			camera.restoreTransform(ctx);
-		} catch (error) {
-			console.error('Error during rendering:', error);
 		}
+
+		camera.restoreTransform(ctx);
 	}
 
-	private renderResident(ctx: CanvasRenderingContext2D, resident: Resident): void {
-		try {
-			const state = resident.getState();
-			if (!state || !state.position) return;
+	private renderBehaviorBubble(ctx: CanvasRenderingContext2D, resident: Resident, bubble: BehaviorBubble): void {
+		const position = resident.getPosition();
+		const pixelX = Math.floor(position.x * this.RESIDENT_SIZE + 14);
+		const pixelY = Math.floor(position.y * this.RESIDENT_SIZE);
 
-			const {x, y} = state.position;
-			const tileSize = this.RESIDENT_SIZE;
-
-			ctx.beginPath();
-			ctx.arc(
-				x * tileSize + tileSize / 2,
-				y * tileSize + tileSize / 2,
-				tileSize / 3,
-				0,
-				Math.PI * 2
-			);
-
-			ctx.fillStyle = this.getResidentColor(state);
-			ctx.fill();
-			ctx.strokeStyle = '#388E3C';
-			ctx.lineWidth = 2;
-			ctx.stroke();
-
-			this.renderResidentName(ctx, resident, x * tileSize + tileSize / 2, y * tileSize - 5);
-		} catch (error) {
-			console.error(`Failed to render resident ${resident.name}:`, error);
-		}
-	}
-
-	private renderResidentName(ctx: CanvasRenderingContext2D, resident: Resident, x: number, y: number): void {
-		ctx.font = this.NAME_FONT;
-		const textWidth = ctx.measureText(resident.name).width;
+		// 버블 배경 그리기
 		const padding = 4;
+		const bubbleHeight = 24;
+		ctx.font = '11px Arial';
+		const textWidth = ctx.measureText(bubble.text).width;
+		const bubbleWidth = textWidth + (padding * 2);
 
-		ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-		ctx.fillRect(
-			x - textWidth / 2 - padding,
-			y - 12,
-			textWidth + padding * 2,
-			20
-		);
+		// 버블 스타일 설정 - 검은색 배경으로 변경
+		ctx.fillStyle = '#fff';  // 약간의 투명도를 추가
 
-		ctx.fillStyle = '#000';
+		// 둥근 사각형 버블 그리기
+		const radius = 6;
+		const x = pixelX - (bubbleWidth / 2);
+		const y = pixelY - 50;
+
+		ctx.beginPath();
+		ctx.moveTo(x + radius, y);
+		ctx.lineTo(x + bubbleWidth - radius, y);
+		ctx.quadraticCurveTo(x + bubbleWidth, y, x + bubbleWidth, y + radius);
+		ctx.lineTo(x + bubbleWidth, y + bubbleHeight - radius);
+		ctx.quadraticCurveTo(x + bubbleWidth, y + bubbleHeight, x + bubbleWidth - radius, y + bubbleHeight);
+		ctx.lineTo(x + radius, y + bubbleHeight);
+		ctx.quadraticCurveTo(x, y + bubbleHeight, x, y + bubbleHeight - radius);
+		ctx.lineTo(x, y + radius);
+		ctx.quadraticCurveTo(x, y, x + radius, y);
+		ctx.closePath();
+
+		// 버블 테두리와 내부 채우기
+		ctx.fill();
+
+		// 텍스트 그리기 - 흰색으로 변경
+		ctx.fillStyle = 'black';
 		ctx.textAlign = 'center';
 		ctx.textBaseline = 'middle';
-		ctx.fillText(resident.name, x, y);
-	}
+		ctx.fillText(bubble.text, pixelX, y + (bubbleHeight / 2));
 
-	private renderDebugInfo(ctx: CanvasRenderingContext2D, resident: Resident): void {
-		const state = resident.getState();
-		if (!state || !state.position) return;
-
-		const {x, y} = state.position;
-		const tileSize = this.RESIDENT_SIZE;
-
-		ctx.font = this.STATE_FONT;
-		ctx.fillStyle = '#000';
-		ctx.textAlign = 'center';
-
-		const debugInfo = [
-			`Action: ${state.currentAction}`,
-			`isHome: ${state.isHome}`,
-			`Pos: (${Math.floor(x)},${Math.floor(y)})`
-		];
-
-		debugInfo.forEach((text, index) => {
-			const yOffset = y * tileSize + tileSize + 12 + (index * 12);
-
-			const textWidth = ctx.measureText(text).width;
-			const padding = 2;
-
-			ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-			ctx.fillRect(
-				x * tileSize + tileSize / 2 - textWidth / 2 - padding,
-				yOffset - 8,
-				textWidth + padding * 2,
-				12
-			);
-
-			ctx.fillStyle = '#000';
-			ctx.fillText(text, x * tileSize + tileSize / 2, yOffset);
-		});
-	}
-
-	private getResidentColor(state: ResidentState): string {
-		if (state.isHome) return this.RESIDENT_COLORS.AT_HOME;
-		switch (state.currentAction) {
-			case 'moving':
-				return this.RESIDENT_COLORS.MOVING;
-			case 'working':
-				return this.RESIDENT_COLORS.WORKING;
-			default:
-				return this.RESIDENT_COLORS.DEFAULT;
-		}
-	}
-
-	toggleDebugMode(): void {
-		this.debugMode = !this.debugMode;
+		// 말풍선 꼬리 그리기 - 검은색으로 변경
+		ctx.fillStyle = '#fff';
+		ctx.beginPath();
+		ctx.moveTo(pixelX - 5, y + bubbleHeight);
+		ctx.lineTo(pixelX, y + bubbleHeight + 8);
+		ctx.lineTo(pixelX + 5, y + bubbleHeight);
+		ctx.closePath();
+		ctx.fill();
+		ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+		ctx.stroke();
 	}
 }

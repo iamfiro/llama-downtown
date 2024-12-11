@@ -199,7 +199,7 @@ function registerSideWalkTile(tileMapManager: TileMapManager) {
 	// 우제통
 	tileMapManager.registerTileType({
 		id: 'mailbox',
-		walkable: false,
+		walkable: true,
 		sprite: {
 			x: 16 * 8,
 			y: 16 * 11,
@@ -212,7 +212,7 @@ function registerSideWalkTile(tileMapManager: TileMapManager) {
 	for (let i = 0; i < 2; i++) {
 		tileMapManager.registerTileType({
 			id: `lamp_${i}`,
-			walkable: false,
+			walkable: true,
 			sprite: {
 				x: 16 * 3,
 				y: 16 * (6 + i),
@@ -226,7 +226,7 @@ function registerSideWalkTile(tileMapManager: TileMapManager) {
 	for (let i = 0; i < 2; i++) {
 		tileMapManager.registerTileType({
 			id: `green_lamp_${i}`,
-			walkable: false,
+			walkable: true,
 			sprite: {
 				x: 16 * 7,
 				y: 16 * (6 + i),
@@ -239,7 +239,7 @@ function registerSideWalkTile(tileMapManager: TileMapManager) {
 	// 신호등
 	tileMapManager.registerTileType({
 		id: `signal_bottom`,
-		walkable: false,
+		walkable: true,
 		sprite: {
 			x: 16 * 2,
 			y: 16 * 7,
@@ -249,7 +249,7 @@ function registerSideWalkTile(tileMapManager: TileMapManager) {
 	});
 	tileMapManager.registerTileType({
 		id: `signal`,
-		walkable: false,
+		walkable: true,
 		sprite: {
 			x: 16 * 4,
 			y: 16 * 15,
@@ -278,6 +278,17 @@ function registerRoomTile(tileMapManager: TileMapManager) {
 		}
 	}
 
+	tileMapManager.registerTileType({
+		id: `stone_wall_${stoneTileIndex}`,
+		walkable: true,
+		sprite: {
+			x: 16,
+			y: 16 + (16 * 3),
+			width: 16,
+			height: 16
+		}
+	});
+
 	// 3x3 wall tiles 등록
 	let tileIndex = 0;
 	for (let i = 0; i < 3; i++) {
@@ -295,6 +306,17 @@ function registerRoomTile(tileMapManager: TileMapManager) {
 			tileIndex++;
 		}
 	}
+
+	tileMapManager.registerTileType({
+		id: `wall_4`,
+		walkable: true,
+		sprite: {
+			x: 1 * 16 + (16 * 8),
+			y: 1 * 16 + (16 * 3),
+			width: 16,
+			height: 16
+		}
+	});
 
 	// 2x2 Corner wall tiles 등록
 	let cornerStoneTileIndex = 0;

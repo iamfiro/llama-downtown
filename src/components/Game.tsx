@@ -33,7 +33,7 @@ const DeterministicGame = () => {
 
 				ctx.imageSmoothingEnabled = false;
 
-				tileMapManagerRef.current = new TileMapManager(WORLD_WIDTH, WORLD_HEIGHT);
+				tileMapManagerRef.current = TileMapManager.getInstance(WORLD_WIDTH, WORLD_HEIGHT);
 
 				await tileMapManagerRef.current.loadTileset('/tilemap_packed.png');
 
@@ -187,7 +187,7 @@ const DeterministicGame = () => {
 					areaManagerRef.current?.render(ctx, cameraRef.current);
 					agentManagerRef.current?.render(ctx, cameraRef.current);
 
-					// agentManagerRef.current?.update(deltaTime)
+					agentManagerRef.current?.update(deltaTime)
 				}
 
 				requestAnimationFrame(gameLoop);
