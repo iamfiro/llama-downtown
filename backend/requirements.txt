@@ -11,4 +11,3 @@ PyJWT
 aiogoogle
 openai
 aiohttp
-ollama
