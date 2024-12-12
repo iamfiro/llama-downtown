@@ -46,9 +46,9 @@ export class AgentManager {
 	private formatAction(action: string): string {
 		switch (action) {
 			case 'move':
-				return "🚶 Walking...";
+				return "🚶";
 			case 'idle':
-				return "🧍 Standing";
+				return "🧍";
 			default:
 				return `${action}`;
 		}

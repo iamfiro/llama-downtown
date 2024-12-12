@@ -28,15 +28,7 @@ interface ResidentState {
 	hasReachedDestination: boolean;
 	direction: 'up' | 'down' | 'left' | 'right';
 	animation: SpriteAnimation;
-	schedule: Schedule[];
 	currentActivity?: string;
-}
-
-interface Schedule {
-	time: number;  // 24시간 형식의 시간 (예: 14.5는 14:30을 의미)
-	activity: string;
-	location: Position;
-	duration: number;  // 활동 지속 시간 (분)
 }
 
 export class Resident {
@@ -75,20 +67,10 @@ export class Resident {
 				frameTime: this.FRAME_TIME,
 				timeSinceLastFrame: 0
 			},
-			schedule: this.generateSchedule(),
 		};
 
 		this.SPRITE_ID = this.spriteId;
 		this.loadSprites();
-	}
-
-	private generateSchedule(): Schedule[] {
-		return [
-			{time: 8, activity: "Wake up", location: {x: 0, y: 0}, duration: 30},
-			{time: 9, activity: "Work", location: {x: 10, y: 10}, duration: 480},
-			{time: 18, activity: "Exercise", location: {x: 5, y: 5}, duration: 60},
-			{time: 20, activity: "Rest", location: {x: 0, y: 0}, duration: 120}
-		];
 	}
 
 	private async loadSprites(): Promise<void> {

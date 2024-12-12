@@ -39,7 +39,6 @@ export class TileMapManager {
 		this.layers = [];
 		this.tilesetImage = null;
 	}
-
 	public static getInstance(width?: number, height?: number, tileSize?: number): TileMapManager {
 		if (!TileMapManager.instance) {
 			if (width === undefined || height === undefined) {
@@ -49,11 +48,9 @@ export class TileMapManager {
 		}
 		return TileMapManager.instance;
 	}
-
 	public static resetInstance(): void {
 		TileMapManager.instance = null;
 	}
-
 	async loadTileset(url: string): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const img = new Image();
@@ -65,7 +62,6 @@ export class TileMapManager {
 			img.src = url;
 		});
 	}
-
 	addLayer(): number {
 		const newLayer: Layer = {
 			tiles: Array(this.height).fill(null).map(() =>
@@ -77,11 +73,9 @@ export class TileMapManager {
 		this.layers.push(newLayer);
 		return this.layers.length - 1;
 	}
-
 	registerTileType(tileType: TileType): void {
 		this.tileTypes.set(tileType.id, tileType);
 	}
-
 	placeTile(x: number, y: number, layerIndex: number, tileTypeId: string): boolean {
 		if (!this.isValidPosition(x, y) || !this.isValidLayer(layerIndex)) {
 			return false;
@@ -100,19 +94,15 @@ export class TileMapManager {
 
 		return true;
 	}
-
 	private isValidPosition(x: number, y: number): boolean {
 		return x >= 0 && x < this.width && y >= 0 && y < this.height;
 	}
-
 	private isValidLayer(layerIndex: number): boolean {
 		return layerIndex >= 0 && layerIndex < this.layers.length;
 	}
-
 	getTilesetImage() {
 		return this.tilesetImage;
 	}
-
 	getTilesetObstacleData(): Array<Array<boolean>> {
 		const obstacleData = Array(this.height).fill(null).map(() =>
 			Array(this.width).fill(false)
@@ -131,7 +121,6 @@ export class TileMapManager {
 
 		return obstacleData;
 	}
-
 	render(ctx: CanvasRenderingContext2D, camera: Camera): void {
 		if (!this.tilesetImage) {
 			console.warn('No tileset image loaded');
