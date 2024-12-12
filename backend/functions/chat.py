@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import json
 import os
 
+from functions import save
+
 load_dotenv()
 
 ai = OpenAI()
@@ -11,7 +13,7 @@ ai = OpenAI()
 ai.api_key = os.getenv("OPENAI_API_KEY")
 
 
-async def generate_response(prompt: dict, to: int):
+async def generate_response(prompt: dict, start: int ,to: int):
     try:
         # 입력된 메시지 내용 추출
         user_message = ""
@@ -34,6 +36,9 @@ async def generate_response(prompt: dict, to: int):
 
         # dict를 JSON 문자열로 변환
         json_response = json.dumps(prompt, ensure_ascii=False)
+
+        save.save(start, to, json_response)
+
 
         return {"to": to, "message": ai_response}
     except Exception as error:
