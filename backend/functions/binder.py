@@ -2,8 +2,10 @@ from functions import players, chat
 import math
 import json
 from datetime import datetime
+from logger import AgentLogger
 
 manager = players.PlayerManager()
+logger = AgentLogger()
 
 
 def calculate_distance(pos1: tuple, pos2: tuple) -> float:
@@ -45,7 +47,7 @@ def find_close_agents(all_players: dict) -> list:
 
             if distance <= 2:
                 close_pairs.append({
-                    'pair': (int(name1), int(name2)),  # Convert to int for use as IDs
+                    'pair': (int(name1), int(name2)),
                     'positions': (player1.pos, player2.pos),
                     'distance': round(distance, 2)
                 })
@@ -58,26 +60,68 @@ async def initiate_chat(from_id: int, to_id: int):
     try:
         prompt = create_chat_prompt(from_id, to_id)
         response = await chat.generate_response(prompt, from_id, to_id)
-        print(f"\nChat initiated between Agent {from_id} and Agent {to_id}")
-        print(f"Response: {response}")
+        logger.log_chat_initiated(from_id, to_id, response.get('distance', 'N/A'))
         return response
     except Exception as e:
-        print(f"Error initiating chat: {str(e)}")
+        logger.log_error(f"Chat initiation failed: {str(e)}")
         return None
 
 
 async def tick(agents: int):
+    # Initialize tick actions record
+    tick_actions = {
+        "time": datetime.now().isoformat(),
+        "players": []
+    }
+
+    # Get all players from the manager
     all_players = manager.get_all_players()
 
+    # Move each player and record their movement
     for player_name in all_players:
         player = all_players[player_name]
+        old_pos = player.pos
         await player.move()
+        logger.log_movement(int(player_name), old_pos, player.pos)
 
+        # Record movement action
+        tick_actions["players"].append({
+            "id": int(player_name),
+            "state": player.state,
+            "location": {
+                "x": player.pos[0],
+                "y": player.pos[1]
+            },
+            "action": "move"
+        })
+
+    # Find close agents after movement
     close_agents = find_close_agents(all_players)
 
+    # Log system status
+    logger.log_system_status(len(all_players), len(close_agents))
+
+    # Initiate chats for close agents and record chat actions
     if close_agents:
-        print("\nClose agents detected:")
         for pair in close_agents:
-            print(f"Agents {pair['pair']} are {pair['distance']} units apart at positions {pair['positions']}")
             from_id, to_id = pair['pair']
-            await initiate_chat(from_id, to_id)
+            chat_response = await initiate_chat(from_id, to_id)
+
+            if chat_response:
+                # Record chat action
+                tick_actions["players"].append({
+                    "id": from_id,
+                    "state": "chat",
+                    "location": {
+                        "x": all_players[str(from_id)].pos[0],
+                        "y": all_players[str(from_id)].pos[1]
+                    },
+                    "action": "chat",
+                    "content": {
+                        "from": from_id,
+                        "to": to_id,
+                        "message": chat_response.get("message", "")
+                    }
+                })
+
+    return tick_actions
