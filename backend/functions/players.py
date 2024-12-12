@@ -13,7 +13,17 @@ class Player:
 
     async def chat(self, prompt):
         self.state = "chat"
-        return await chat.generate_response(prompt, self.name)
+        return await chat.generate_response(
+            {
+                "content": {
+                    "from": self.name,
+                    "to": prompt["content"]["to"],
+                    "message": prompt["content"]["message"]
+                }
+            },
+            self.name,
+            prompt["content"]["to"]
+        )
 
 
 class PlayerManager:

@@ -16,20 +16,11 @@ def calculate_distance(pos1: tuple, pos2: tuple) -> float:
 def create_chat_prompt(from_id: int, to_id: int) -> dict:
     """Create a chat prompt structure for two agents"""
     return {
-        "time": datetime.now().isoformat(),
-        "players": [
-            {
-                "id": from_id,
-                "state": "chat",
-                "action": "chat",
-                "content": [
-                    {
-                        "to": to_id,
-                        "message": f"Hello Agent {to_id}, I noticed you're nearby. How are you doing?"
-                    }
-                ]
-            }
-        ]
+        "content": {
+            "from": from_id,
+            "to": to_id,
+            "message": f"Hello Agent {to_id}, Let's chat!"
+        }
     }
 
 
